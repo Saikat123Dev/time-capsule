@@ -15,115 +15,80 @@ model User {
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   isActive       Boolean         @default(true)
-  preferences    Json? // Store user preferences as JSON
-  memories       Memory[]
+  preferences    Json?
   collaborations Collaboration[]
-  notifications  Notification[] // New: Track user notifications
-  ownedCapsules  Capsule[] // New: Explicit capsule ownership
+  notifications  Notification[]
+  ownedCapsules  Capsule[]
 }
 
-model Memory {
-  id            String          @id @default(auto()) @map("_id") @db.ObjectId
-  userId        String          @db.ObjectId
-  user          User            @relation(fields: [userId], references: [id])
-  title         String // New: Add title for better organization
-  description   String? // New: Optional description
-  tags          String[] // New: Enable categorization and searching
-  mediaContent  MediaContent? // New: Separate media content relationship
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  unlockDate    DateTime
-  status        String          @default("locked") // New: Track memory status
-  collaborators Collaboration[]
-  secureStorage SecureStorage?
-  AIOutput      AIOutput[]
-  Capsule       Capsule[]
-
-  @@index([userId, unlockDate]) // Optimize queries for unlock date checking
-}
-
-// New: Separate media content for better organization and storage optimization
 model MediaContent {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  memoryId  String   @unique @db.ObjectId
-  memory    Memory   @relation(fields: [memoryId], references: [id])
+  capsuleId String   @unique @db.ObjectId // Added @unique constraint
+  capsule   Capsule  @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
   text      String?
-  images    Json // Store image metadata and URLs
-  videos    Json // Store video metadata and URLs
-  totalSize Int // Track total media size
+  images    Json
+  videos    Json
+  totalSize Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model SecureStorage {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  memoryId      String   @unique @db.ObjectId
-  memory        Memory   @relation(fields: [memoryId], references: [id])
-  encryptionKey String
-  storageType   String   @default("standard") // New: Support different storage types
-  storedAt      DateTime @default(now())
-  accessLog     Json? // New: Track access history
+model Capsule {
+  id             String          @id @default(auto()) @map("_id") @db.ObjectId
+  ownerId        String          @db.ObjectId
+  owner          User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  aiOutput       AIOutput?
+  mediaContent   MediaContent?
+  title          String
+  description    String?
+  unlockDate     DateTime
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  isReady        Boolean         @default(false)
+  accessLog      Json?
+  expiresAt      DateTime?
+  collaborations Collaboration[]
+
+  @@index([ownerId, isReady, unlockDate])
 }
 
 model Collaboration {
   id        String    @id @default(auto()) @map("_id") @db.ObjectId
-  memoryId  String    @db.ObjectId
-  memory    Memory    @relation(fields: [memoryId], references: [id])
+  capsuleId String    @db.ObjectId
+  capsule   Capsule   @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
   userId    String    @db.ObjectId
-  user      User      @relation(fields: [userId], references: [id])
-  role      String    @default("viewer") // New: Define collaboration roles
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      String    @default("viewer")
   invitedAt DateTime  @default(now())
   status    String    @default("pending")
-  expiresAt DateTime? // New: Optional collaboration expiration
+  expiresAt DateTime?
 
-  @@unique([memoryId, userId]) // Prevent duplicate collaborations
+  @@unique([capsuleId, userId])
 }
 
 model AIOutput {
-  id          String    @id @default(auto()) @map("_id") @db.ObjectId
-  memoryId    String    @db.ObjectId
-  memory      Memory    @relation(fields: [memoryId], references: [id])
-  type        String // e.g., "geminiAnalysis", "storytelling"
-  content     Json // Changed to Json for flexible storage
-  metadata    Json? // New: Store additional AI processing metadata
-  generatedAt DateTime  @default(now())
-  version     String // New: Track AI model versions
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  capsuleId   String   @unique @db.ObjectId // Added @unique constraint
+  capsule     Capsule  @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
+  type        String
+  content     Json
+  metadata    Json?
+  generatedAt DateTime @default(now())
+  version     String
   videoUrl    String?
-  status      String    @default("processing") // New: Track processing status
-  Capsule     Capsule[]
+  status      String   @default("processing")
 
-  @@index([memoryId, type]) // Optimize queries by memory and type
+  @@index([capsuleId, type])
 }
 
-model Capsule {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  memoryId      String    @db.ObjectId
-  memory        Memory    @relation(fields: [memoryId], references: [id])
-  ownerId       String    @db.ObjectId // New: Explicit owner
-  owner         User      @relation(fields: [ownerId], references: [id])
-  aiOutputId    String    @db.ObjectId
-  aiOutput      AIOutput  @relation(fields: [aiOutputId], references: [id])
-  title         String // New: Customizable title
-  description   String? // New: Optional description
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  isReady       Boolean   @default(false)
-  shareSettings Json // New: Flexible sharing configuration
-  accessLog     Json? // New: Track viewing history
-  expiresAt     DateTime? // New: Optional expiration date
-
-  @@index([ownerId, isReady]) // Optimize queries for ready capsules
-}
-
-// New: Handle user notifications
 model Notification {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @db.ObjectId
-  user      User     @relation(fields: [userId], references: [id])
-  type      String // e.g., "capsule_ready", "collaboration_invite"
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
   content   Json
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  @@index([userId, isRead]) // Optimize queries for unread notifications
+  @@index([userId, isRead])
 }

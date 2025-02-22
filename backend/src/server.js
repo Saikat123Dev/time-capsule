@@ -1,5 +1,6 @@
 const express = require('express');
-const cors = require('cors'); // Import the cors package
+const cors = require('cors');
+const multer = require('multer');
 const capsuleRoutes = require('./routes/capsuleRoutes');
 const authRoutes = require('./routes/authRoutes');
 const errorHandler = require('./middleware/errorHandler');
@@ -8,7 +9,7 @@ const env = require('./config/env');
 
 const app = express();
 
-// Enable CORS for your frontend (e.g., http://localhost:5173 for Vite)
+// Enable CORS
 app.use(cors({
   origin: '*', // Adjust this to match your frontend URL (e.g., Vite dev server)
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], // Allowed HTTP methods
@@ -19,6 +20,9 @@ app.use(cors({
 app.use(express.json());
 app.use('/api/capsules', capsuleRoutes);
 app.use('/api/auth', authRoutes);
+
+// Apply multer middleware for file uploads in capsule routes
+app.use('/api/capsules', upload.array('files')); // Handles multiple files under the 'files' field
 
 app.use(errorHandler);
 

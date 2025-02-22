@@ -23,6 +23,18 @@ class S3Service {
     const data = await s3.getObject(params).promise();
     return JSON.parse(data.Body.toString());
   }
+
+  static async uploadFile(file) {
+    const params = {
+      Bucket: env.S3_BUCKET,
+      Key: `media/${Date.now()}_${file.originalname}`,
+      Body: file.buffer, // Use file.buffer if using multer.memoryStorage
+      ContentType: file.mimetype,
+    };
+
+    const data = await s3.upload(params).promise();
+    return data.Location; // Returns the S3 URL of the uploaded file
+  }
 }
 
 module.exports = S3Service;
