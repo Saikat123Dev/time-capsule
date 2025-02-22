@@ -68,15 +68,14 @@ model Collaboration {
 
 model AIOutput {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  capsuleId   String   @unique @db.ObjectId // Added @unique constraint
+  capsuleId   String   @unique @db.ObjectId
   capsule     Capsule  @relation(fields: [capsuleId], references: [id], onDelete: Cascade)
   type        String
-  content     Json
+  content     String?
+  audioUrl    String?
   metadata    Json?
   generatedAt DateTime @default(now())
-  version     String
   videoUrl    String?
-  status      String   @default("processing")
 
   @@index([capsuleId, type])
 }

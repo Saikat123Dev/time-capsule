@@ -6,7 +6,7 @@ const authRoutes = require('./routes/authRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const CapsuleUnlockJob = require('./jobs/capsuleUnlockJob');
 const env = require('./config/env');
-
+const captionRoutes = require('./routes/captionRoutes');
 const app = express();
 
 // Enable CORS
@@ -23,7 +23,7 @@ app.use('/api/auth', authRoutes);
 
 // Apply multer middleware for file uploads in capsule routes
 app.use('/api/capsules', upload.array('files')); // Handles multiple files under the 'files' field
-
+app.use('/api/captions', upload.single('audioFile'), captionRoutes); // New: Add multer for audio file upload
 app.use(errorHandler);
 
 // Start the unlock job

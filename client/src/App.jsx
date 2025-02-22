@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import TextToSpeech from './components/TexttoAudio';
 import CapsuleDetail from './pages/CapsuleDetailed';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
@@ -57,6 +58,8 @@ function App() {
         </nav>
         <Routes>
           <Route path="/login" element={user ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />} />
+          <Route path="/text" element={<TextToSpeech />} />
+
           <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Signup onLogin={handleLogin} />} />
           <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
           <Route path="/capsule/:capsuleId" element={user ? <CapsuleDetail user={user} /> : <Navigate to="/login" />} />
