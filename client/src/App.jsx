@@ -4,6 +4,7 @@ import CapsuleDetail from './pages/CapsuleDetailed';
 import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import MediaUpload from './components/mediaUpload';
 import api from './services/api';
 
 function App() {
@@ -38,16 +39,18 @@ function App() {
           <div className="container mx-auto flex justify-between items-center">
             <h1 className="text-2xl font-bold">Time Capsule</h1>
             {user ? (
-              <button
-                onClick={handleLogout}
-                className="bg-red-500 hover:bg-red-700 px-4 py-2 rounded"
-              >
-                Logout
-              </button>
+              <div className="flex gap-4">
+                <button
+                  onClick={handleLogout}
+                  className="bg-red-500 hover:bg-red-700 px-4 py-2 rounded transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
             ) : (
-              <div>
-                <a href="/login" className="mr-4">Login</a>
-                <a href="/signup">Sign Up</a>
+              <div className="flex gap-4">
+                <a href="/login" className="hover:text-blue-200 transition-colors">Login</a>
+                <a href="/signup" className="hover:text-blue-200 transition-colors">Sign Up</a>
               </div>
             )}
           </div>
@@ -57,6 +60,7 @@ function App() {
           <Route path="/signup" element={user ? <Navigate to="/dashboard" /> : <Signup onLogin={handleLogin} />} />
           <Route path="/dashboard" element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} />
           <Route path="/capsule/:capsuleId" element={user ? <CapsuleDetail user={user} /> : <Navigate to="/login" />} />
+          <Route path="/mediaUpload" element={ <MediaUpload /> } />
           <Route path="/" element={<Navigate to={user ? "/dashboard" : "/login"} />} />
         </Routes>
       </div>
